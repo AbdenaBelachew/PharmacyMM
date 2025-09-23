@@ -1,0 +1,327 @@
+﻿@*@{
+        ViewBag.Title = "Dashboard";
+    }
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        /* Add hover effect for cards */
+        .card-hover {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+            .card-hover:hover {
+                transform: translateY(-6px) scale(1.02);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            }
+    </style>
+
+    <div class="container mt-5">
+
+        <!-- Welcome Section -->
+        <div class="text-center mb-5">
+            <h1 class="fw-bold text-primary mb-3">
+                <i class="bi bi-house-door-fill me-2"></i> Welcome to Your Dashboard
+            </h1>
+            <p class="text-muted">Track sales, monitor expenses, and analyze profits all in one place 🚀</p>
+        </div>
+
+        <!-- Stats Counters -->
+        <div class="row g-4 mb-5 text-center">
+            <div class="col-md-3">
+                <div class="p-4 bg-light rounded-4 shadow-sm">
+                    <i class="bi bi-cash-coin text-success fs-1 mb-2"></i>
+                    <h5>Total Sales</h5>
+                    <h3 class="fw-bold text-success" id="salesCounter">@String.Format("{0:C}", ViewBag.totalRevenue)</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-4 bg-light rounded-4 shadow-sm">
+                    <i class="bi bi-graph-up-arrow text-primary fs-1 mb-2"></i>
+                    <h5>Net Profit</h5>
+                    <h3 class="fw-bold text-primary" id="profitCounter">@String.Format("{0:C}", ViewBag.NetProfit)</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-4 bg-light rounded-4 shadow-sm">
+                    <i class="bi bi-wallet2 text-danger fs-1 mb-2"></i>
+                    <h5>Expenses</h5>
+                    <h3 class="fw-bold text-danger" id="expenseCounter">@String.Format("{0:C}", ViewBag.TotalExpenses)</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-4 bg-light rounded-4 shadow-sm">
+                    <i class="bi bi-box-seam text-warning fs-1 mb-2"></i>
+                    <h5>Products</h5>
+                    <h3 class="fw-bold text-warning" id="productCounter">@ViewBag.TotalProducts</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="container py-5">
+
+            <!-- Quick Links -->
+            <div class="row g-4 mb-5">
+                <!-- Sales -->
+                <div class="col-md-4">
+                    <a href="@Url.Action("Index","SaleItems")" class="text-decoration-none">
+                        <div class="p-4 rounded-4 shadow-lg text-white h-100 card-hover"
+                             style="background: linear-gradient(135deg,#007bff,#00c6ff);">
+                            <i class="bi bi-basket2-fill fs-1 mb-3 d-block"></i>
+                            <h5 class="fw-bold">Manage Sales</h5>
+                            <p class="mb-0 small">View and record sales transactions.</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Expenses -->
+                <div class="col-md-4">
+                    <a href="@Url.Action("Index","Expenses")" class="text-decoration-none">
+                        <div class="p-4 rounded-4 shadow-lg text-white h-100 card-hover"
+                             style="background: linear-gradient(135deg,#dc3545,#ff6b6b);">
+                            <i class="bi bi-wallet-fill fs-1 mb-3 d-block"></i>
+                            <h5 class="fw-bold">Track Expenses</h5>
+                            <p class="mb-0 small">Monitor and control business costs.</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Products -->
+                <div class="col-md-4">
+                    <a href="@Url.Action("Index","Products")" class="text-decoration-none">
+                        <div class="p-4 rounded-4 shadow-lg text-white h-100 card-hover"
+                             style="background: linear-gradient(135deg,#28a745,#85e085);">
+                            <i class="bi bi-box-seam fs-1 mb-3 d-block"></i>
+                            <h5 class="fw-bold">Manage Products</h5>
+                            <p class="mb-0 small">Add, update, and organize inventory.</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm rounded-4">
+                    <div class="card-header bg-primary text-white rounded-top-4">
+                        <i class="bi bi-bar-chart-line"></i> Monthly Sales
+                    </div>
+                    <div class="card-body">
+                        <canvas id="salesChart" height="180"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm rounded-4">
+                    <div class="card-header bg-success text-white rounded-top-4">
+                        <i class="bi bi-pie-chart"></i> Profit vs Expenses
+                    </div>
+                    <div class="card-body">
+                        <canvas id="profitChart" height="180"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Monthly Sales Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan','Feb','Mar','Apr','May','Jun'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [500, 800, 600, 900, 1200, 1500],
+                    backgroundColor: '#007bff'
+                }]
+            }
+        });
+
+        // Profit vs Expenses Doughnut
+        const profitCtx = document.getElementById('profitChart').getContext('2d');
+        new Chart(profitCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Profit','Expenses'],
+                datasets: [{
+                    data: [@ViewBag.NetProfit, @ViewBag.TotalExpenses],
+                    backgroundColor: ['#28a745','#dc3545']
+                }]
+            }
+        });
+    </script>*@
+
+
+@model dynamic
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+    body {
+        background: #f8f9fa;
+    }
+
+    .card {
+        border-radius: 0.75rem;
+    }
+
+    .card-header {
+        font-weight: 600;
+    }
+
+    .card-hover {
+        transition: transform 0.2s ease;
+    }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+        }
+</style>
+
+<div class="container mt-4">
+    <!-- Welcome Section -->
+    <div class="text-center mb-5">
+        @*<h4 class="fw-semibold text-primary"><i class="bi bi-house-door-fill me-1"></i> Dashboard</h4>
+            <p class="text-muted small">Track sales, expenses, and profits.</p>*@
+    </div>
+
+    <!-- Stats Counters -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card bg-light border-0 card-hover">
+                <div class="card-body text-center p-3">
+                    <i class="bi bi-cash-coin text-success fs-4 mb-1"></i>
+                    <h6 class="fw-bold">Sales</h6>
+                    @*<h5 class="text-success">@String.Format("{0:C}", ViewBag.totalRevenue)</h5>*@
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card bg-light border-0 card-hover">
+                <div class="card-body text-center p-3">
+                    <i class="bi bi-graph-up-arrow text-primary fs-4 mb-1"></i>
+                    <h6 class="fw-bold">Profit</h6>
+                    @*<h5 class="text-primary">@String.Format("{0:C}", ViewBag.NetProfit)</h5>*@
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card bg-light border-0 card-hover">
+                <div class="card-body text-center p-3">
+                    <i class="bi bi-wallet2 text-danger fs-4 mb-1"></i>
+                    <h6 class="fw-bold">Expenses</h6>
+                    @*<h5 class="text-danger">@String.Format("{0:C}", ViewBag.TotalExpenses)</h5>*@
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card bg-light border-0 card-hover">
+                <div class="card-body text-center p-3">
+                    <i class="bi bi-box-seam text-warning fs-4 mb-1"></i>
+                    <h6 class="fw-bold">Products</h6>
+                    @*<h5 class="text-warning">@ViewBag.TotalProducts</h5>*@
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="row g-3 mb-4">
+        <div class="col-4">
+            <a href="@Url.Action("Index", "SaleItems")" class="text-decoration-none">
+                <div class="card text-white card-hover" style="background: linear-gradient(135deg, #007bff, #00c6ff);">
+                    <div class="card-body p-3">
+                        <i class="bi bi-basket2-fill fs-4 mb-1 d-block"></i>
+                        <h6 class="fw-bold">Sales</h6>
+                        <p class="small mb-0">Record sales</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-4">
+            <a href="@Url.Action("Index", "Expenses")" class="text-decoration-none">
+                <div class="card text-white card-hover" style="background: linear-gradient(135deg, #dc3545, #ff6b6b);">
+                    <div class="card-body p-3">
+                        <i class="bi bi-wallet-fill fs-4 mb-1 d-block"></i>
+                        <h6 class="fw-bold">Expenses</h6>
+                        <p class="small mb-0">Track costs</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-4">
+            <a href="@Url.Action("Index", "Products")" class="text-decoration-none">
+                <div class="card text-white card-hover" style="background: linear-gradient(135deg, #28a745, #85e085);">
+                    <div class="card-body p-3">
+                        <i class="bi bi-box-seam fs-4 mb-1 d-block"></i>
+                        <h6 class="fw-bold">Products</h6>
+                        <p class="small mb-0">Manage inventory</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card border-0">
+                <div class="card-header bg-primary text-white">Monthly Sales</div>
+                <div class="card-body p-3">
+                    <canvas id="salesChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0">
+                <div class="card-header bg-success text-white">Profit vs Expenses</div>
+                <div class="card-body p-3">
+                    <canvas id="profitChart" width="300" height="300" style="max-width: 300px; max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [500, 800, 600, 900, 1200, 1500],
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+
+        const profitCtx = document.getElementById('profitChart').getContext('2d');
+        new Chart(profitCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Profit', 'Expenses'],
+                datasets: [{
+                    data: [@ViewBag.NetProfit, @ViewBag.totalcosts],
+                    backgroundColor: ['#28a745', '#dc3545']
+                }]
+            }
+        });
+    </script>
+}
