@@ -31,6 +31,7 @@ namespace PharmacyMM.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(Category category)
         {
+            var username = Session["Username"];
             if (ModelState.IsValid)
             {
                 // Check for duplicate category name
@@ -43,6 +44,7 @@ namespace PharmacyMM.Controllers
                 db.Categories.Add(category);
                 try
                 {
+                    category.CreatedBy = username.ToString();
                     db.SaveChanges();
                     return Json(new { success = true });
                 }

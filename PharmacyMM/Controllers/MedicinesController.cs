@@ -43,10 +43,12 @@ namespace PharmacyMM.Controllers
         [ValidateAntiForgeryToken]
         public JsonResult Create(Medicine medicine)
         {
+            var username = Session["Username"];
             if (ModelState.IsValid)
             {
                 try
                 {
+                    medicine.CreatedBy = username.ToString();
                     db.Medicines.Add(medicine);
                     db.SaveChanges();
                     return Json(new { success = true });
